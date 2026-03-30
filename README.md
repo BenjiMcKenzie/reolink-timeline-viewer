@@ -134,7 +134,3 @@ Erste sinnvolle Tags / Topics:
 ```text
 reolink fastapi docker synology timeline cctv nvr homehub
 ```
-
-## Lizenz
-
-Für GitHub könntest du z. B. MIT verwenden.
