@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reolink Timeline Viewer</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <h1>Reolink Timeline Viewer</h1>
+        <p>Lokaler Timeline-Viewer für Reolink Home Hub / FTP-Aufnahmen</p>
+      </div>
+      <button id="refreshButton" class="ghost-button">Neu laden</button>
+    </header>
+
+    <section class="controls card">
+      <label>
+        Datum
+        <select id="dateSelect"></select>
+      </label>
+
+      <label>
+        Kamera
+        <select id="cameraSelect">
+          <option value="">Alle Kameras</option>
+        </select>
+      </label>
+
+      <div class="stats">
+        <span id="eventCount">0 Ereignisse</span>
+      </div>
+    </section>
+
+    <section class="viewer-layout">
+      <article class="viewer card">
+        <div class="viewer-header">
+          <div>
+            <h2 id="viewerTitle">Kein Ereignis ausgewählt</h2>
+            <p id="viewerMeta">Bitte unten ein Ereignis auswählen.</p>
+          </div>
+          <div class="mode-switch">
+            <button id="imageModeButton" class="mode-button active">Foto</button>
+            <button id="videoModeButton" class="mode-button">Video</button>
+          </div>
+        </div>
+
+        <div class="viewer-stage" id="viewerStage">
+          <div class="empty-state">Keine Daten für diese Auswahl gefunden.</div>
+        </div>
+      </article>
+
+      <article class="timeline card">
+        <div class="timeline-header">
+          <h2>Timeline</h2>
+          <span>24 Stunden</span>
+        </div>
+        <div id="timelineTrack" class="timeline-track"></div>
+        <div class="timeline-scale">
+          <span>00:00</span>
+          <span>06:00</span>
+          <span>12:00</span>
+          <span>18:00</span>
+          <span>24:00</span>
+        </div>
+      </article>
+    </section>
+
+    <section class="events card">
+      <div class="events-header">
+        <h2>Ereignisse</h2>
+        <span>Thumbnail-Leiste</span>
+      </div>
+      <div id="eventsGrid" class="events-grid"></div>
+    </section>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
