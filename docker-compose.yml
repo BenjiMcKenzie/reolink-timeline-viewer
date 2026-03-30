@@ -7,8 +7,8 @@ services:
     ports:
       - "8085:8085"
     environment:
-      MEDIA_ROOT: /homes/ftp_reolink
+      MEDIA_ROOT: /data/reolink
       PORT: 8085
     volumes:
-      - /homes/ftp_reolink:/homes/ftp_reolink:ro
+      - /volume1/homes/ftp_reolink:/data/reolink:ro
     restart: unless-stopped
