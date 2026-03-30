@@ -1,6 +1,8 @@
 services:
   reolink-timeline-viewer:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: reolink-timeline-viewer
     ports:
       - "8085:8085"
