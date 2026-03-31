@@ -122,7 +122,7 @@ function renderTimeline() {
     marker.className = `timeline-marker ${event.id === state.selectedEventId ? 'active' : ''}`;
 
     const left = (event.seconds_of_day / 86400) * 100;
-    const height = 52 + (index % 3) * 16;
+    const height = 42 + (index % 4) * 14;
 
     marker.style.left = `${left}%`;
     marker.style.height = `${height}px`;
