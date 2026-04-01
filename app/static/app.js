@@ -114,28 +114,40 @@ function shiftTimelineWindow(direction) {
 }
 
 function updateModeButtons() {
-  imageModeButton.classList.toggle("active", state.viewerMode === "image");
-  videoModeButton.classList.toggle("active", state.viewerMode === "video");
+  if (imageModeButton) {
+    imageModeButton.classList.toggle("active", state.viewerMode === "image");
+  }
+  if (videoModeButton) {
+    videoModeButton.classList.toggle("active", state.viewerMode === "video");
+  }
 }
 
 function updateZoomButtons() {
-  zoom24Button.classList.toggle("active", state.zoomHours === 24);
-  zoom12Button.classList.toggle("active", state.zoomHours === 12);
-  zoom6Button.classList.toggle("active", state.zoomHours === 6);
+  if (zoom24Button) zoom24Button.classList.toggle("active", state.zoomHours === 24);
+  if (zoom12Button) zoom12Button.classList.toggle("active", state.zoomHours === 12);
+  if (zoom6Button) zoom6Button.classList.toggle("active", state.zoomHours === 6);
 
   const disabled = state.zoomHours >= 24;
-  timelinePrevButton.disabled = disabled;
-  timelineNextButton.disabled = disabled;
-  timelinePrevButton.style.opacity = disabled ? "0.5" : "1";
-  timelineNextButton.style.opacity = disabled ? "0.5" : "1";
+
+  if (timelinePrevButton) {
+    timelinePrevButton.disabled = disabled;
+    timelinePrevButton.style.opacity = disabled ? "0.5" : "1";
+  }
+
+  if (timelineNextButton) {
+    timelineNextButton.disabled = disabled;
+    timelineNextButton.style.opacity = disabled ? "0.5" : "1";
+  }
 }
 
 function updateTimelineRangeLabel() {
+  if (!timelineRangeLabel) return;
   const end = state.visibleStartSec + getZoomSeconds();
   timelineRangeLabel.textContent = `${formatTimeFromSeconds(state.visibleStartSec)} – ${formatTimeFromSeconds(Math.min(end, 86400))}`;
 }
 
 function renderTimelineScale() {
+  if (!timelineScale) return;
   timelineScale.innerHTML = "";
 
   const steps = 6;
@@ -151,6 +163,8 @@ function renderTimelineScale() {
 
 function renderViewer() {
   const event = selectedEvent();
+
+  if (!viewerTitle || !viewerMeta || !viewerStage) return;
 
   if (!event) {
     viewerTitle.textContent = "Kein Ereignis ausgewählt";
@@ -182,6 +196,7 @@ function renderViewer() {
 }
 
 function renderDayStrip() {
+  if (!dayStrip) return;
   dayStrip.innerHTML = "";
 
   if (!state.dates.length) return;
@@ -210,6 +225,8 @@ function renderDayStrip() {
 }
 
 function renderTimeline() {
+  if (!timelineTrack) return;
+
   timelineTrack.innerHTML = "";
   timelineTrack.classList.toggle("zoomed", state.zoomHours < 24);
 
@@ -269,6 +286,8 @@ function buildThumb(event) {
 }
 
 function renderFilmstrip() {
+  if (!eventsFilmstrip || !eventCount) return;
+
   eventsFilmstrip.innerHTML = "";
   eventCount.textContent = `${state.events.length} Ereignisse`;
 
@@ -303,6 +322,7 @@ function renderFilmstrip() {
 }
 
 function scrollSelectedIntoView() {
+  if (!eventsFilmstrip) return;
   const selectedCard = eventsFilmstrip.querySelector(".event-tile.active");
   if (selectedCard) {
     selectedCard.scrollIntoView({
@@ -328,6 +348,7 @@ function selectEvent(eventId, smoothScroll = false, recenterTimeline = true) {
 }
 
 function setZoom(hours) {
+  console.log("setZoom called:", hours);
   state.zoomHours = hours;
   ensureVisibleStartForSelectedEvent();
   renderTimeline();
@@ -336,6 +357,8 @@ function setZoom(hours) {
 async function loadCameras(date) {
   const data = await getJson(`/api/cameras?date=${encodeURIComponent(date)}`);
   state.cameras = Array.isArray(data.cameras) ? data.cameras : [];
+
+  if (!cameraSelect) return;
 
   const previousValue = cameraSelect.value;
   cameraSelect.innerHTML = `<option value="">Alle Kameras</option>`;
@@ -352,8 +375,8 @@ async function loadCameras(date) {
 }
 
 async function loadEvents() {
-  const date = dateSelect.value;
-  const camera = cameraSelect.value;
+  const date = dateSelect?.value;
+  const camera = cameraSelect?.value;
 
   if (!date) {
     state.events = [];
@@ -373,7 +396,9 @@ async function loadEvents() {
   state.events = Array.isArray(data.events) ? data.events : [];
   state.selectedEventId = state.events[0]?.id ?? null;
   state.viewerMode = "image";
-  selectedMonthLabel.textContent = formatMonthLabel(date);
+  if (selectedMonthLabel) {
+    selectedMonthLabel.textContent = formatMonthLabel(date);
+  }
 
   ensureVisibleStartForSelectedEvent();
   renderDayStrip();
@@ -384,6 +409,7 @@ async function bootstrap() {
   const dateData = await getJson("/api/dates");
   state.dates = Array.isArray(dateData.dates) ? dateData.dates : [];
 
+  if (!dateSelect) return;
   dateSelect.innerHTML = "";
 
   state.dates.forEach((date) => {
@@ -394,57 +420,81 @@ async function bootstrap() {
   });
 
   if (!state.dates.length) {
-    selectedMonthLabel.textContent = "—";
+    if (selectedMonthLabel) selectedMonthLabel.textContent = "—";
     renderDayStrip();
     renderFilmstrip();
     return;
   }
 
   dateSelect.value = state.dates[0];
-  selectedMonthLabel.textContent = formatMonthLabel(state.dates[0]);
+  if (selectedMonthLabel) {
+    selectedMonthLabel.textContent = formatMonthLabel(state.dates[0]);
+  }
 
   renderDayStrip();
   await loadCameras(state.dates[0]);
   await loadEvents();
 }
 
-dateSelect.addEventListener("change", async () => {
-  selectedMonthLabel.textContent = formatMonthLabel(dateSelect.value);
-  renderDayStrip();
-  await loadCameras(dateSelect.value);
-  await loadEvents();
-});
+if (dateSelect) {
+  dateSelect.addEventListener("change", async () => {
+    if (selectedMonthLabel) {
+      selectedMonthLabel.textContent = formatMonthLabel(dateSelect.value);
+    }
+    renderDayStrip();
+    await loadCameras(dateSelect.value);
+    await loadEvents();
+  });
+}
 
-cameraSelect.addEventListener("change", async () => {
-  await loadEvents();
-});
+if (cameraSelect) {
+  cameraSelect.addEventListener("change", async () => {
+    await loadEvents();
+  });
+}
 
-imageModeButton.addEventListener("click", () => {
-  state.viewerMode = "image";
-  renderViewer();
-});
+if (imageModeButton) {
+  imageModeButton.addEventListener("click", () => {
+    state.viewerMode = "image";
+    renderViewer();
+  });
+}
 
-videoModeButton.addEventListener("click", () => {
-  state.viewerMode = "video";
-  renderViewer();
-});
+if (videoModeButton) {
+  videoModeButton.addEventListener("click", () => {
+    state.viewerMode = "video";
+    renderViewer();
+  });
+}
 
-refreshButton.addEventListener("click", async () => {
-  await bootstrap();
-});
+if (refreshButton) {
+  refreshButton.addEventListener("click", async () => {
+    await bootstrap();
+  });
+}
 
-zoom24Button.addEventListener("click", () => setZoom(24));
-zoom12Button.addEventListener("click", () => setZoom(12));
-zoom6Button.addEventListener("click", () => setZoom(6));
+if (zoom24Button) {
+  zoom24Button.addEventListener("click", () => setZoom(24));
+}
+if (zoom12Button) {
+  zoom12Button.addEventListener("click", () => setZoom(12));
+}
+if (zoom6Button) {
+  zoom6Button.addEventListener("click", () => setZoom(6));
+}
 
-timelinePrevButton.addEventListener("click", () => shiftTimelineWindow(-1));
-timelineNextButton.addEventListener("click", () => shiftTimelineWindow(1));
+if (timelinePrevButton) {
+  timelinePrevButton.addEventListener("click", () => shiftTimelineWindow(-1));
+}
+if (timelineNextButton) {
+  timelineNextButton.addEventListener("click", () => shiftTimelineWindow(1));
+}
 
 bootstrap().catch((error) => {
   console.error(error);
-  viewerTitle.textContent = "Fehler";
-  viewerMeta.textContent = "Die Oberfläche konnte nicht geladen werden.";
-  viewerStage.innerHTML = buildEmptyState("Fehler beim Laden der Daten. Sieh in die Container-Logs.");
-  timelineTrack.innerHTML = `<div class="timeline-empty">Fehler</div>`;
-  eventsFilmstrip.innerHTML = buildEmptyState("Keine Daten verfügbar.");
+  if (viewerTitle) viewerTitle.textContent = "Fehler";
+  if (viewerMeta) viewerMeta.textContent = "Die Oberfläche konnte nicht geladen werden.";
+  if (viewerStage) viewerStage.innerHTML = buildEmptyState("Fehler beim Laden der Daten. Sieh in die Container-Logs.");
+  if (timelineTrack) timelineTrack.innerHTML = `<div class="timeline-empty">Fehler</div>`;
+  if (eventsFilmstrip) eventsFilmstrip.innerHTML = buildEmptyState("Keine Daten verfügbar.");
 });
