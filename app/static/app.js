@@ -23,7 +23,12 @@ const refreshButton = document.getElementById("refreshButton");
 const selectedMonthLabel = document.getElementById("selectedMonthLabel");
 const dayStrip = document.getElementById("dayStrip");
 const timelineRangeLabel = document.getElementById("timelineRangeLabel");
-const zoomSwitch = document.getElementById("zoomSwitch");
+
+const zoom24Button = document.getElementById("zoom24Button");
+const zoom12Button = document.getElementById("zoom12Button");
+const zoom6Button = document.getElementById("zoom6Button");
+const timelinePrevButton = document.getElementById("timelinePrevButton");
+const timelineNextButton = document.getElementById("timelineNextButton");
 
 async function getJson(url) {
   const response = await fetch(url);
@@ -68,16 +73,20 @@ function formatTimeFromSeconds(totalSeconds) {
   const sec = Math.max(0, Math.min(86400, Math.floor(totalSeconds)));
   const hours = Math.floor(sec / 3600);
   const minutes = Math.floor((sec % 3600) / 60);
-  return `${String(hours).padStart(1, "0")}:${String(minutes).padStart(2, "0")}`;
+  return `${hours}:${String(minutes).padStart(2, "0")}`;
 }
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
 
+function getZoomSeconds() {
+  return state.zoomHours * 3600;
+}
+
 function ensureVisibleStartForSelectedEvent() {
   const event = selectedEvent();
-  const zoomSec = state.zoomHours * 3600;
+  const zoomSec = getZoomSeconds();
 
   if (!event) {
     state.visibleStartSec = 0;
@@ -94,33 +103,48 @@ function ensureVisibleStartForSelectedEvent() {
   state.visibleStartSec = clamp(proposed, 0, 86400 - zoomSec);
 }
 
+function shiftTimelineWindow(direction) {
+  if (state.zoomHours >= 24) return;
+
+  const zoomSec = getZoomSeconds();
+  const step = zoomSec / 2;
+  const nextStart = state.visibleStartSec + direction * step;
+  state.visibleStartSec = clamp(nextStart, 0, 86400 - zoomSec);
+  renderTimeline();
+}
+
 function updateModeButtons() {
   imageModeButton.classList.toggle("active", state.viewerMode === "image");
   videoModeButton.classList.toggle("active", state.viewerMode === "video");
 }
 
 function updateZoomButtons() {
-  const buttons = zoomSwitch.querySelectorAll(".zoom-button");
-  buttons.forEach((button) => {
-    button.classList.toggle("active", Number(button.dataset.zoom) === state.zoomHours);
-  });
+  zoom24Button.classList.toggle("active", state.zoomHours === 24);
+  zoom12Button.classList.toggle("active", state.zoomHours === 12);
+  zoom6Button.classList.toggle("active", state.zoomHours === 6);
+
+  const disabled = state.zoomHours >= 24;
+  timelinePrevButton.disabled = disabled;
+  timelineNextButton.disabled = disabled;
+  timelinePrevButton.style.opacity = disabled ? "0.5" : "1";
+  timelineNextButton.style.opacity = disabled ? "0.5" : "1";
 }
 
 function updateTimelineRangeLabel() {
-  const end = state.visibleStartSec + state.zoomHours * 3600;
-  timelineRangeLabel.textContent = `${formatTimeFromSeconds(state.visibleStartSec)} – ${formatTimeFromSeconds(end >= 86400 ? 86400 : end)}`;
+  const end = state.visibleStartSec + getZoomSeconds();
+  timelineRangeLabel.textContent = `${formatTimeFromSeconds(state.visibleStartSec)} – ${formatTimeFromSeconds(Math.min(end, 86400))}`;
 }
 
 function renderTimelineScale() {
   timelineScale.innerHTML = "";
 
-  const steps = state.zoomHours === 24 ? 4 : state.zoomHours === 12 ? 6 : 6;
-  const interval = (state.zoomHours * 3600) / steps;
+  const steps = 6;
+  const interval = getZoomSeconds() / steps;
 
   for (let i = 0; i <= steps; i += 1) {
     const label = document.createElement("span");
     const sec = state.visibleStartSec + interval * i;
-    label.textContent = formatTimeFromSeconds(sec >= 86400 ? 86400 : sec);
+    label.textContent = formatTimeFromSeconds(Math.min(sec, 86400));
     timelineScale.appendChild(label);
   }
 }
@@ -160,9 +184,7 @@ function renderViewer() {
 function renderDayStrip() {
   dayStrip.innerHTML = "";
 
-  if (!state.dates.length) {
-    return;
-  }
+  if (!state.dates.length) return;
 
   state.dates.forEach((date) => {
     const info = getDayInfo(date);
@@ -200,11 +222,12 @@ function renderTimeline() {
     return;
   }
 
-  const zoomSec = state.zoomHours * 3600;
+  const zoomSec = getZoomSeconds();
   const visibleEnd = state.visibleStartSec + zoomSec;
 
   const visibleEvents = state.events.filter((event) => {
     const sec = Number(event.seconds_of_day || 0);
+    if (state.zoomHours >= 24) return true;
     return sec >= state.visibleStartSec && sec <= visibleEnd;
   });
 
@@ -219,7 +242,10 @@ function renderTimeline() {
     marker.className = `timeline-marker ${event.id === state.selectedEventId ? "active" : ""}`;
 
     const sec = Number(event.seconds_of_day || 0);
-    const left = ((sec - state.visibleStartSec) / zoomSec) * 100;
+    const left = state.zoomHours >= 24
+      ? (sec / 86400) * 100
+      : ((sec - state.visibleStartSec) / zoomSec) * 100;
+
     const baseHeight = state.zoomHours === 24 ? 44 : state.zoomHours === 12 ? 52 : 58;
     const height = baseHeight + (index % 4) * 14;
 
@@ -407,13 +433,12 @@ refreshButton.addEventListener("click", async () => {
   await bootstrap();
 });
 
-zoomSwitch.addEventListener("click", (event) => {
-  const button = event.target.closest(".zoom-button");
-  if (!button) return;
-  const zoom = Number(button.dataset.zoom);
-  if (![24, 12, 6].includes(zoom)) return;
-  setZoom(zoom);
-});
+zoom24Button.addEventListener("click", () => setZoom(24));
+zoom12Button.addEventListener("click", () => setZoom(12));
+zoom6Button.addEventListener("click", () => setZoom(6));
+
+timelinePrevButton.addEventListener("click", () => shiftTimelineWindow(-1));
+timelineNextButton.addEventListener("click", () => shiftTimelineWindow(1));
 
 bootstrap().catch((error) => {
   console.error(error);
