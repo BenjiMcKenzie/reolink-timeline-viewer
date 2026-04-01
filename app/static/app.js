@@ -214,7 +214,9 @@ function renderDayStrip() {
     button.addEventListener("click", async () => {
       if (dateSelect.value === date) return;
       dateSelect.value = date;
-      selectedMonthLabel.textContent = formatMonthLabel(date);
+      if (selectedMonthLabel) {
+        selectedMonthLabel.textContent = formatMonthLabel(date);
+      }
       renderDayStrip();
       await loadCameras(date);
       await loadEvents();
@@ -354,6 +356,18 @@ function setZoom(hours) {
   renderTimeline();
 }
 
+window.setTimelineZoom = function(hours) {
+  setZoom(hours);
+};
+
+window.timelinePrev = function() {
+  shiftTimelineWindow(-1);
+};
+
+window.timelineNext = function() {
+  shiftTimelineWindow(1);
+};
+
 async function loadCameras(date) {
   const data = await getJson(`/api/cameras?date=${encodeURIComponent(date)}`);
   state.cameras = Array.isArray(data.cameras) ? data.cameras : [];
@@ -396,6 +410,7 @@ async function loadEvents() {
   state.events = Array.isArray(data.events) ? data.events : [];
   state.selectedEventId = state.events[0]?.id ?? null;
   state.viewerMode = "image";
+
   if (selectedMonthLabel) {
     selectedMonthLabel.textContent = formatMonthLabel(date);
   }
@@ -471,23 +486,6 @@ if (refreshButton) {
   refreshButton.addEventListener("click", async () => {
     await bootstrap();
   });
-}
-
-if (zoom24Button) {
-  zoom24Button.addEventListener("click", () => setZoom(24));
-}
-if (zoom12Button) {
-  zoom12Button.addEventListener("click", () => setZoom(12));
-}
-if (zoom6Button) {
-  zoom6Button.addEventListener("click", () => setZoom(6));
-}
-
-if (timelinePrevButton) {
-  timelinePrevButton.addEventListener("click", () => shiftTimelineWindow(-1));
-}
-if (timelineNextButton) {
-  timelineNextButton.addEventListener("click", () => shiftTimelineWindow(1));
 }
 
 bootstrap().catch((error) => {
