@@ -76,14 +76,14 @@
 
             <div class="timeline-toolbar-right">
               <div class="timeline-nav">
-                <button id="timelinePrevButton" class="timeline-nav-button" type="button">←</button>
-                <button id="timelineNextButton" class="timeline-nav-button" type="button">→</button>
+                <button id="timelinePrevButton" class="timeline-nav-button" type="button" onclick="window.timelinePrev()">←</button>
+                <button id="timelineNextButton" class="timeline-nav-button" type="button" onclick="window.timelineNext()">→</button>
               </div>
 
               <div class="zoom-switch">
-                <button type="button" class="zoom-button" id="zoom24Button">24h</button>
-                <button type="button" class="zoom-button" id="zoom12Button">12h</button>
-                <button type="button" class="zoom-button" id="zoom6Button">6h</button>
+                <button type="button" class="zoom-button" id="zoom24Button" onclick="window.setTimelineZoom(24)">24h</button>
+                <button type="button" class="zoom-button" id="zoom12Button" onclick="window.setTimelineZoom(12)">12h</button>
+                <button type="button" class="zoom-button" id="zoom6Button" onclick="window.setTimelineZoom(6)">6h</button>
               </div>
             </div>
           </div>
