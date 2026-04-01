@@ -169,14 +169,16 @@ select {
 }
 
 .mode-switch,
-.zoom-switch {
+.zoom-switch,
+.timeline-nav {
   display: inline-flex;
   gap: 8px;
   flex-wrap: wrap;
 }
 
 .mode-button,
-.zoom-button {
+.zoom-button,
+.timeline-nav-button {
   border: 1px solid var(--border);
   background: rgba(19, 33, 61, 0.98);
   color: var(--text);
@@ -184,6 +186,11 @@ select {
   padding: 11px 16px;
   cursor: pointer;
   min-width: 84px;
+}
+
+.timeline-nav-button {
+  min-width: 52px;
+  padding: 11px 12px;
 }
 
 .mode-button.active,
@@ -318,6 +325,13 @@ select {
   align-items: center;
   gap: 10px;
   margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.timeline-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
@@ -601,14 +615,16 @@ select {
   }
 
   .mode-switch,
-  .zoom-switch {
+  .zoom-switch,
+  .timeline-nav {
     width: 100%;
     display: flex;
     gap: 8px;
   }
 
   .mode-button,
-  .zoom-button {
+  .zoom-button,
+  .timeline-nav-button {
     flex: 1 1 0;
     padding: 8px;
     min-width: 0;
@@ -640,6 +656,11 @@ select {
   }
 
   .timeline-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .timeline-toolbar-right {
     flex-direction: column;
     align-items: stretch;
   }
