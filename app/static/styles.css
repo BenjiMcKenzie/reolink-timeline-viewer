@@ -168,12 +168,15 @@ select {
   padding: 11px 14px;
 }
 
-.mode-switch {
+.mode-switch,
+.zoom-switch {
   display: inline-flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
-.mode-button {
+.mode-button,
+.zoom-button {
   border: 1px solid var(--border);
   background: rgba(19, 33, 61, 0.98);
   color: var(--text);
@@ -183,7 +186,8 @@ select {
   min-width: 84px;
 }
 
-.mode-button.active {
+.mode-button.active,
+.zoom-button.active {
   border-color: var(--border-strong);
   background: var(--accent-soft);
   box-shadow: inset 0 0 0 1px rgba(74, 147, 255, 0.4);
@@ -308,6 +312,20 @@ select {
   box-shadow: 0 0 0 1px rgba(74, 147, 255, 0.32);
 }
 
+.timeline-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.timeline-range-label {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
 .timeline-wrap {
   margin-bottom: 16px;
 }
@@ -321,6 +339,12 @@ select {
   overflow: hidden;
   background:
     linear-gradient(to right, rgba(255,255,255,0.06) 1px, transparent 1px) 0 0 / calc(100% / 24) 100%,
+    linear-gradient(180deg, rgba(12, 25, 48, 0.98), rgba(8, 18, 36, 0.98));
+}
+
+.timeline-track.zoomed {
+  background:
+    linear-gradient(to right, rgba(255,255,255,0.08) 1px, transparent 1px) 0 0 / calc(100% / 12) 100%,
     linear-gradient(180deg, rgba(12, 25, 48, 0.98), rgba(8, 18, 36, 0.98));
 }
 
@@ -350,9 +374,20 @@ select {
   border-radius: 10px 10px 12px 12px;
   background: linear-gradient(180deg, rgba(89, 154, 255, 0.88), rgba(63, 120, 232, 0.78));
   cursor: pointer;
-  opacity: 0.82;
+  opacity: 0.9;
   transition: 0.16s ease;
   box-shadow: inset 0 0 0 1px rgba(162, 199, 255, 0.16);
+}
+
+.timeline-marker::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -8px;
+  transform: translateX(-50%);
+  width: 34px;
+  height: calc(100% + 16px);
+  background: transparent;
 }
 
 .timeline-marker:hover {
@@ -565,27 +600,30 @@ select {
     font-size: 0.9rem;
   }
 
-  .mode-switch {
+  .mode-switch,
+  .zoom-switch {
     width: 100%;
     display: flex;
     gap: 8px;
   }
 
-  .mode-button {
+  .mode-button,
+  .zoom-button {
     flex: 1 1 0;
     padding: 8px;
     min-width: 0;
   }
 
   .viewer-stage {
-    height: 34vh;
+    height: auto;
+    aspect-ratio: 1 / 1;
     min-height: 200px;
-    max-height: 320px;
+    max-height: 260px;
   }
 
   .viewer-stage img,
   .viewer-stage video {
-    max-height: 320px;
+    max-height: 260px;
   }
 
   .playback-title {
@@ -599,6 +637,15 @@ select {
 
   .playback-stats {
     font-size: 0.86rem;
+  }
+
+  .timeline-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .timeline-range-label {
+    font-size: 0.78rem;
   }
 
   .day-pill {
@@ -628,6 +675,11 @@ select {
   .timeline-marker {
     width: 12px;
     border-radius: 8px 8px 10px 10px;
+  }
+
+  .timeline-marker::before {
+    width: 28px;
+    height: calc(100% + 14px);
   }
 
   .events-filmstrip {
