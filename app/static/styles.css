@@ -507,28 +507,28 @@ select {
   .top-strip {
     flex-direction: column;
     align-items: stretch;
-    gap: 10px;
-    margin-bottom: 10px;
+    gap: 8px;
+    margin-bottom: 8px;
   }
 
   .brand-title {
-    font-size: 0.98rem;
+    font-size: 0.9rem;
   }
 
   .brand-subtitle {
-    font-size: 0.78rem;
-    line-height: 1.25;
+    font-size: 0.7rem;
+    line-height: 1.2;
   }
 
   .top-action {
     width: 100%;
-    padding: 10px 12px;
+    padding: 8px;
   }
 
   .player-panel,
   .playback-panel {
-    border-radius: 16px;
-    padding: 10px;
+    border-radius: 14px;
+    padding: 8px;
   }
 
   .player-topbar {
@@ -536,18 +536,18 @@ select {
   }
 
   .player-camera {
-    font-size: 1.05rem;
+    font-size: 1rem;
     line-height: 1.2;
   }
 
   .player-meta {
-    font-size: 0.82rem;
-    line-height: 1.25;
+    font-size: 0.75rem;
+    line-height: 1.2;
   }
 
   .player-actions {
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
   }
 
   .select-wrap {
@@ -561,8 +561,8 @@ select {
   .select-wrap select {
     width: 100%;
     min-width: 0;
-    padding: 10px 12px;
-    font-size: 0.95rem;
+    padding: 8px;
+    font-size: 0.9rem;
   }
 
   .mode-switch {
@@ -573,19 +573,19 @@ select {
 
   .mode-button {
     flex: 1 1 0;
-    padding: 10px 12px;
+    padding: 8px;
     min-width: 0;
   }
 
   .viewer-stage {
-    height: 42vh;
-    min-height: 240px;
-    max-height: 52vh;
+    height: 34vh;
+    min-height: 200px;
+    max-height: 320px;
   }
 
   .viewer-stage img,
   .viewer-stage video {
-    max-height: 52vh;
+    max-height: 320px;
   }
 
   .playback-title {
@@ -616,17 +616,17 @@ select {
   }
 
   .timeline-track {
-    height: 74px;
+    height: 60px;
     border-radius: 12px;
   }
 
   .timeline-scale {
-    font-size: 0.74rem;
+    font-size: 0.7rem;
     margin-top: 6px;
   }
 
   .timeline-marker {
-    width: 16px;
+    width: 12px;
     border-radius: 8px 8px 10px 10px;
   }
 
@@ -636,14 +636,14 @@ select {
   }
 
   .event-tile {
-    width: 118px;
-    flex: 0 0 118px;
+    width: 110px;
+    flex: 0 0 110px;
     border-radius: 12px;
   }
 
   .event-thumb,
   .event-thumb-fallback {
-    height: 68px;
+    height: 60px;
   }
 
   .event-caption {
@@ -651,11 +651,11 @@ select {
   }
 
   .event-time {
-    font-size: 0.92rem;
+    font-size: 0.85rem;
   }
 
   .event-camera {
-    font-size: 0.74rem;
+    font-size: 0.7rem;
     line-height: 1.15;
   }
 
