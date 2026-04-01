@@ -74,10 +74,17 @@
               <div class="timeline-range-label" id="timelineRangeLabel">0:00 – 24:00</div>
             </div>
 
-            <div class="zoom-switch" id="zoomSwitch">
-              <button type="button" class="zoom-button" data-zoom="24">24h</button>
-              <button type="button" class="zoom-button" data-zoom="12">12h</button>
-              <button type="button" class="zoom-button" data-zoom="6">6h</button>
+            <div class="timeline-toolbar-right">
+              <div class="timeline-nav">
+                <button id="timelinePrevButton" class="timeline-nav-button" type="button">←</button>
+                <button id="timelineNextButton" class="timeline-nav-button" type="button">→</button>
+              </div>
+
+              <div class="zoom-switch">
+                <button type="button" class="zoom-button" id="zoom24Button">24h</button>
+                <button type="button" class="zoom-button" id="zoom12Button">12h</button>
+                <button type="button" class="zoom-button" id="zoom6Button">6h</button>
+              </div>
             </div>
           </div>
 
