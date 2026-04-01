@@ -4,6 +4,8 @@ let state = {
   events: [],
   selectedEventId: null,
   viewerMode: "image",
+  zoomHours: window.innerWidth <= 720 ? 6 : 24,
+  visibleStartSec: 0,
 };
 
 const dateSelect = document.getElementById("dateSelect");
@@ -11,6 +13,7 @@ const cameraSelect = document.getElementById("cameraSelect");
 const eventCount = document.getElementById("eventCount");
 const eventsFilmstrip = document.getElementById("eventsFilmstrip");
 const timelineTrack = document.getElementById("timelineTrack");
+const timelineScale = document.getElementById("timelineScale");
 const viewerStage = document.getElementById("viewerStage");
 const viewerTitle = document.getElementById("viewerTitle");
 const viewerMeta = document.getElementById("viewerMeta");
@@ -19,6 +22,8 @@ const videoModeButton = document.getElementById("videoModeButton");
 const refreshButton = document.getElementById("refreshButton");
 const selectedMonthLabel = document.getElementById("selectedMonthLabel");
 const dayStrip = document.getElementById("dayStrip");
+const timelineRangeLabel = document.getElementById("timelineRangeLabel");
+const zoomSwitch = document.getElementById("zoomSwitch");
 
 async function getJson(url) {
   const response = await fetch(url);
@@ -59,9 +64,65 @@ function buildEmptyState(message) {
   return `<div class="empty-state">${message}</div>`;
 }
 
+function formatTimeFromSeconds(totalSeconds) {
+  const sec = Math.max(0, Math.min(86400, Math.floor(totalSeconds)));
+  const hours = Math.floor(sec / 3600);
+  const minutes = Math.floor((sec % 3600) / 60);
+  return `${String(hours).padStart(1, "0")}:${String(minutes).padStart(2, "0")}`;
+}
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function ensureVisibleStartForSelectedEvent() {
+  const event = selectedEvent();
+  const zoomSec = state.zoomHours * 3600;
+
+  if (!event) {
+    state.visibleStartSec = 0;
+    return;
+  }
+
+  if (state.zoomHours >= 24) {
+    state.visibleStartSec = 0;
+    return;
+  }
+
+  const center = Number(event.seconds_of_day || 0);
+  const proposed = center - zoomSec / 2;
+  state.visibleStartSec = clamp(proposed, 0, 86400 - zoomSec);
+}
+
 function updateModeButtons() {
   imageModeButton.classList.toggle("active", state.viewerMode === "image");
   videoModeButton.classList.toggle("active", state.viewerMode === "video");
+}
+
+function updateZoomButtons() {
+  const buttons = zoomSwitch.querySelectorAll(".zoom-button");
+  buttons.forEach((button) => {
+    button.classList.toggle("active", Number(button.dataset.zoom) === state.zoomHours);
+  });
+}
+
+function updateTimelineRangeLabel() {
+  const end = state.visibleStartSec + state.zoomHours * 3600;
+  timelineRangeLabel.textContent = `${formatTimeFromSeconds(state.visibleStartSec)} – ${formatTimeFromSeconds(end >= 86400 ? 86400 : end)}`;
+}
+
+function renderTimelineScale() {
+  timelineScale.innerHTML = "";
+
+  const steps = state.zoomHours === 24 ? 4 : state.zoomHours === 12 ? 6 : 6;
+  const interval = (state.zoomHours * 3600) / steps;
+
+  for (let i = 0; i <= steps; i += 1) {
+    const label = document.createElement("span");
+    const sec = state.visibleStartSec + interval * i;
+    label.textContent = formatTimeFromSeconds(sec >= 86400 ? 86400 : sec);
+    timelineScale.appendChild(label);
+  }
 }
 
 function renderViewer() {
@@ -128,26 +189,46 @@ function renderDayStrip() {
 
 function renderTimeline() {
   timelineTrack.innerHTML = "";
+  timelineTrack.classList.toggle("zoomed", state.zoomHours < 24);
+
+  updateZoomButtons();
+  updateTimelineRangeLabel();
+  renderTimelineScale();
 
   if (!state.events.length) {
     timelineTrack.innerHTML = `<div class="timeline-empty">Keine Ereignisse vorhanden</div>`;
     return;
   }
 
-  state.events.forEach((event, index) => {
+  const zoomSec = state.zoomHours * 3600;
+  const visibleEnd = state.visibleStartSec + zoomSec;
+
+  const visibleEvents = state.events.filter((event) => {
+    const sec = Number(event.seconds_of_day || 0);
+    return sec >= state.visibleStartSec && sec <= visibleEnd;
+  });
+
+  if (!visibleEvents.length) {
+    timelineTrack.innerHTML = `<div class="timeline-empty">Keine Ereignisse im gewählten Zeitfenster</div>`;
+    return;
+  }
+
+  visibleEvents.forEach((event, index) => {
     const marker = document.createElement("button");
     marker.type = "button";
     marker.className = `timeline-marker ${event.id === state.selectedEventId ? "active" : ""}`;
 
-    const left = (Number(event.seconds_of_day || 0) / 86400) * 100;
-    const height = 44 + (index % 4) * 18;
+    const sec = Number(event.seconds_of_day || 0);
+    const left = ((sec - state.visibleStartSec) / zoomSec) * 100;
+    const baseHeight = state.zoomHours === 24 ? 44 : state.zoomHours === 12 ? 52 : 58;
+    const height = baseHeight + (index % 4) * 14;
 
     marker.style.left = `${left}%`;
     marker.style.height = `${height}px`;
     marker.title = `${event.time} · ${formatCameraName(event.camera)}`;
 
     marker.addEventListener("click", () => {
-      selectEvent(event.id, true);
+      selectEvent(event.id, true, false);
     });
 
     timelineTrack.appendChild(marker);
@@ -185,7 +266,7 @@ function renderFilmstrip() {
     `;
 
     card.addEventListener("click", () => {
-      selectEvent(event.id, true);
+      selectEvent(event.id, true, true);
     });
 
     eventsFilmstrip.appendChild(card);
@@ -206,13 +287,24 @@ function scrollSelectedIntoView() {
   }
 }
 
-function selectEvent(eventId, smoothScroll = false) {
+function selectEvent(eventId, smoothScroll = false, recenterTimeline = true) {
   state.selectedEventId = eventId;
+
+  if (recenterTimeline) {
+    ensureVisibleStartForSelectedEvent();
+  }
+
   renderFilmstrip();
 
   if (smoothScroll) {
     scrollSelectedIntoView();
   }
+}
+
+function setZoom(hours) {
+  state.zoomHours = hours;
+  ensureVisibleStartForSelectedEvent();
+  renderTimeline();
 }
 
 async function loadCameras(date) {
@@ -240,6 +332,7 @@ async function loadEvents() {
   if (!date) {
     state.events = [];
     state.selectedEventId = null;
+    state.visibleStartSec = 0;
     renderDayStrip();
     renderFilmstrip();
     return;
@@ -256,6 +349,7 @@ async function loadEvents() {
   state.viewerMode = "image";
   selectedMonthLabel.textContent = formatMonthLabel(date);
 
+  ensureVisibleStartForSelectedEvent();
   renderDayStrip();
   renderFilmstrip();
 }
@@ -311,6 +405,14 @@ videoModeButton.addEventListener("click", () => {
 
 refreshButton.addEventListener("click", async () => {
   await bootstrap();
+});
+
+zoomSwitch.addEventListener("click", (event) => {
+  const button = event.target.closest(".zoom-button");
+  if (!button) return;
+  const zoom = Number(button.dataset.zoom);
+  if (![24, 12, 6].includes(zoom)) return;
+  setZoom(zoom);
 });
 
 bootstrap().catch((error) => {
