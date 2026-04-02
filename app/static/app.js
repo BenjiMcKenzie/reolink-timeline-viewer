@@ -8,8 +8,9 @@ let state = {
   visibleStartSec: 0,
 };
 
-// Globale Funktionen SOFORT registrieren,
-// damit inline onclick immer etwas findet.
+let deferredInstallPrompt = null;
+
+// Globale Funktionen für die Toolbar
 window.setTimelineZoom = function (hours) {
   state.zoomHours = Number(hours);
   ensureVisibleStartForSelectedEvent();
@@ -36,6 +37,7 @@ const viewerMeta = document.getElementById("viewerMeta");
 const imageModeButton = document.getElementById("imageModeButton");
 const videoModeButton = document.getElementById("videoModeButton");
 const refreshButton = document.getElementById("refreshButton");
+const installButton = document.getElementById("installButton");
 const selectedMonthLabel = document.getElementById("selectedMonthLabel");
 const dayStrip = document.getElementById("dayStrip");
 const timelineRangeLabel = document.getElementById("timelineRangeLabel");
@@ -448,6 +450,50 @@ async function bootstrap() {
   await loadEvents();
 }
 
+async function installPWA() {
+  if (!deferredInstallPrompt) return;
+
+  deferredInstallPrompt.prompt();
+  const choiceResult = await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+
+  if (installButton) {
+    installButton.style.display = "none";
+  }
+
+  console.log("PWA install result:", choiceResult.outcome);
+}
+
+function registerPWAInstallPrompt() {
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+
+    if (installButton) {
+      installButton.style.display = "inline-flex";
+    }
+  });
+
+  window.addEventListener("appinstalled", () => {
+    deferredInstallPrompt = null;
+    if (installButton) {
+      installButton.style.display = "none";
+    }
+    console.log("PWA installed");
+  });
+}
+
+async function registerServiceWorker() {
+  if (!("serviceWorker" in navigator)) return;
+
+  try {
+    await navigator.serviceWorker.register("/static/service-worker.js?v=20260402a");
+    console.log("Service Worker registriert");
+  } catch (error) {
+    console.error("Service Worker konnte nicht registriert werden:", error);
+  }
+}
+
 if (dateSelect) {
   dateSelect.addEventListener("change", async () => {
     if (selectedMonthLabel) {
@@ -484,6 +530,15 @@ if (refreshButton) {
     await bootstrap();
   });
 }
+
+if (installButton) {
+  installButton.addEventListener("click", async () => {
+    await installPWA();
+  });
+}
+
+registerPWAInstallPrompt();
+registerServiceWorker();
 
 bootstrap().catch((error) => {
   console.error(error);
