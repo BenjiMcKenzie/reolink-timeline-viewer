@@ -8,6 +8,22 @@ let state = {
   visibleStartSec: 0,
 };
 
+// Globale Funktionen SOFORT registrieren,
+// damit inline onclick immer etwas findet.
+window.setTimelineZoom = function (hours) {
+  state.zoomHours = Number(hours);
+  ensureVisibleStartForSelectedEvent();
+  renderTimeline();
+};
+
+window.timelinePrev = function () {
+  shiftTimelineWindow(-1);
+};
+
+window.timelineNext = function () {
+  shiftTimelineWindow(1);
+};
+
 const dateSelect = document.getElementById("dateSelect");
 const cameraSelect = document.getElementById("cameraSelect");
 const eventCount = document.getElementById("eventCount");
@@ -348,25 +364,6 @@ function selectEvent(eventId, smoothScroll = false, recenterTimeline = true) {
     scrollSelectedIntoView();
   }
 }
-
-function setZoom(hours) {
-  console.log("setZoom called:", hours);
-  state.zoomHours = hours;
-  ensureVisibleStartForSelectedEvent();
-  renderTimeline();
-}
-
-window.setTimelineZoom = function(hours) {
-  setZoom(hours);
-};
-
-window.timelinePrev = function() {
-  shiftTimelineWindow(-1);
-};
-
-window.timelineNext = function() {
-  shiftTimelineWindow(1);
-};
 
 async function loadCameras(date) {
   const data = await getJson(`/api/cameras?date=${encodeURIComponent(date)}`);
