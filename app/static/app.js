@@ -407,7 +407,15 @@ async function loadEvents() {
 
   const data = await getJson(`/api/events?${params.toString()}`);
   state.events = Array.isArray(data.events) ? data.events : [];
-  state.selectedEventId = state.events[0]?.id ?? null;
+
+  state.events.sort((a, b) => {
+    return Number(a.seconds_of_day || 0) - Number(b.seconds_of_day || 0);
+  });
+
+  state.selectedEventId = state.events.length
+    ? state.events[state.events.length - 1].id
+    : null;
+
   state.viewerMode = "image";
 
   if (selectedMonthLabel) {
