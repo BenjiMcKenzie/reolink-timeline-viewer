@@ -111,13 +111,19 @@ function ensureVisibleStartForSelectedEvent() {
     return;
   }
 
+  const sec = Number(event.seconds_of_day || 0);
+
+  // Bei 24h soll nicht immer links bei 0:00 begonnen werden,
+  // sondern der Bereich so gesetzt werden, dass das neueste Event sichtbar ist.
   if (state.zoomHours >= 24) {
-    state.visibleStartSec = 0;
+    state.visibleStartSec = Math.max(0, 86400 - zoomSec);
     return;
   }
 
-  const center = Number(event.seconds_of_day || 0);
-  const proposed = center - zoomSec / 2;
+  // Event eher im rechten Bereich positionieren, damit "neueste Events"
+  // sofort sichtbar sind.
+  const proposed = sec - zoomSec * 0.8;
+
   state.visibleStartSec = clamp(proposed, 0, 86400 - zoomSec);
 }
 
