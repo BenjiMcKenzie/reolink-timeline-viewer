@@ -1,5 +1,9 @@
 # Reolink Timeline Viewer
 
+Local playback viewer for Reolink FTP/Home Hub recordings.
+
+![Main Screenshot](screenshots/main-view.png)
+
 Ein schlanker Web-Viewer für Reolink FTP-/Home-Hub-Aufnahmen. Der Viewer liest lokale Bild- und Videodateien aus einem Ordner, gruppiert sie nach Datum, Kamera und Uhrzeit und stellt sie als Timeline dar.
 
 Die Version `1.0.0` ist für den Betrieb hinter einem Reverse Proxy vorbereitet und unterstützt die Veröffentlichung unter einem Unterpfad wie `/reolink`.
