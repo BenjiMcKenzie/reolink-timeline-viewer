@@ -1,4 +1,3 @@
-```markdown
 # Reolink Timeline Viewer
 
 ![GitHub release](https://img.shields.io/github/v/release/BenjiMcKenzie/reolink-timeline-viewer)
@@ -24,4 +23,13 @@ Local playback viewer for Reolink FTP/Home Hub recordings.
 - 📂 FTP/Home Hub recording support
 - 🌐 Custom base path support, for example `/reolink`
 - ⚡ Responsive dark UI
-```
+
+## 🚀 Roadmap
+
+- [ ] Multi-camera synchronization
+- [ ] Keyboard shortcuts
+- [ ] Light theme
+- [ ] Multi-language support
+- [ ] Export event list
+- [ ] Improved mobile layout
+- [ ] Docker image publishing
