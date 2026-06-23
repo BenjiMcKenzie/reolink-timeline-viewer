@@ -2,8 +2,9 @@ FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    MEDIA_ROOT=/homes/ftp_reolink \
-    PORT=8085
+    MEDIA_ROOT=/data/reolink \
+    PORT=8085 \
+    BASE_PATH=/reolink
 
 WORKDIR /app
 
@@ -15,4 +16,4 @@ COPY app ./app
 
 EXPOSE 8085
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8085"]
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]

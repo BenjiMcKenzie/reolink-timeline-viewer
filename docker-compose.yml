@@ -4,11 +4,10 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: reolink-timeline-viewer
+    env_file:
+      - .env
     ports:
       - "8085:8085"
-    environment:
-      MEDIA_ROOT: /data/reolink
-      PORT: 8085
     volumes:
       - /volume1/homes/ftp_reolink:/data/reolink:ro
     restart: unless-stopped

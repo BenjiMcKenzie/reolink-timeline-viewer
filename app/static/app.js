@@ -1,3 +1,12 @@
+const APP_CONFIG = window.__APP_CONFIG__ || {};
+const BASE_PATH = String(APP_CONFIG.basePath || "").replace(/\/$/, "");
+const APP_VERSION = String(APP_CONFIG.version || "1.0.0");
+
+function appUrl(path = "") {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return `${BASE_PATH}${normalizedPath}`;
+}
+
 let state = {
   dates: [],
   cameras: [],
@@ -57,7 +66,7 @@ async function getJson(url) {
 }
 
 function mediaUrl(relPath) {
-  return `/media/${encodeURI(relPath)}`;
+  return appUrl(`/media/${encodeURI(relPath)}`);
 }
 
 function formatCameraName(name) {
@@ -374,7 +383,7 @@ function selectEvent(eventId, smoothScroll = false, recenterTimeline = true) {
 }
 
 async function loadCameras(date) {
-  const data = await getJson(`/api/cameras?date=${encodeURIComponent(date)}`);
+  const data = await getJson(appUrl(`/api/cameras?date=${encodeURIComponent(date)}`));
   state.cameras = Array.isArray(data.cameras) ? data.cameras : [];
 
   if (!cameraSelect) return;
@@ -411,7 +420,7 @@ async function loadEvents() {
     params.set("camera", camera);
   }
 
-  const data = await getJson(`/api/events?${params.toString()}`);
+  const data = await getJson(appUrl(`/api/events?${params.toString()}`));
   state.events = Array.isArray(data.events) ? data.events : [];
 
   state.events.sort((a, b) => {
@@ -434,7 +443,7 @@ async function loadEvents() {
 }
 
 async function bootstrap() {
-  const dateData = await getJson("/api/dates");
+  const dateData = await getJson(appUrl("/api/dates"));
   state.dates = Array.isArray(dateData.dates) ? dateData.dates : [];
 
   if (!dateSelect) return;
@@ -501,7 +510,7 @@ async function registerServiceWorker() {
   if (!("serviceWorker" in navigator)) return;
 
   try {
-    await navigator.serviceWorker.register("/static/service-worker.js?v=20260402a");
+    await navigator.serviceWorker.register(appUrl(`/service-worker.js?v=${APP_VERSION}`), { scope: appUrl("/") });
     console.log("Service Worker registriert");
   } catch (error) {
     console.error("Service Worker konnte nicht registriert werden:", error);

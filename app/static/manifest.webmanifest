@@ -1,22 +1,26 @@
 {
+  "id": "/reolink/",
   "name": "Reolink Timeline Viewer",
-  "short_name": "Reolink Timeline",
-  "start_url": "/",
-  "scope": "/",
+  "short_name": "Reolink",
+  "start_url": "/reolink/?source=pwa-static",
+  "scope": "/reolink/",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#050b17",
   "theme_color": "#050b17",
   "description": "Lokaler Playback-Viewer für Reolink FTP-/Home-Hub-Aufnahmen",
   "icons": [
     {
-      "src": "/static/icons/icon-192.png",
+      "src": "/reolink/static/icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "/static/icons/icon-512.png",
+      "src": "/reolink/static/icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

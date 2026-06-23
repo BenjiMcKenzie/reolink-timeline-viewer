@@ -1,136 +1,118 @@
 # Reolink Timeline Viewer
 
-Ein lokaler Timeline-Viewer für Reolink Home Hub / FTP-Aufnahmen mit Tagesauswahl, Kamera-Filter, Timeline-Markern, Thumbnail-Leiste und großem Viewer für Foto/Video.
+Ein schlanker Web-Viewer für Reolink FTP-/Home-Hub-Aufnahmen. Der Viewer liest lokale Bild- und Videodateien aus einem Ordner, gruppiert sie nach Datum, Kamera und Uhrzeit und stellt sie als Timeline dar.
 
-## Ziel
+Die Version `1.0.0` ist für den Betrieb hinter einem Reverse Proxy vorbereitet und unterstützt die Veröffentlichung unter einem Unterpfad wie `/reolink`.
 
-Dieses Projekt ist für Reolink-Dateistrukturen gedacht, bei denen Bild und Video denselben Zeitstempel im Dateinamen teilen, zum Beispiel:
+## Funktionen
 
-- `Haustuer_01_homehub_20260328171736.jpg`
-- `Haustuer_01_homehub_20260328171736.mp4`
+- Timeline-Ansicht für Reolink-Ereignisse
+- Foto- und Videomodus
+- Kamera-Filter
+- Datumsnavigation
+- Auto-Auswahl des neuesten Ereignisses beim Öffnen
+- PWA-Unterstützung: als App installierbar
+- Docker-Deployment
+- konfigurierbarer Base Path, z. B. `/reolink`
+- vorbereitet für Nginx Proxy Manager und Cloudflare Tunnel
 
-Die Anwendung fasst diese Dateien zu einem Ereignis zusammen.
+## Erwartete Dateistruktur
 
-## Unterstützte Struktur
-
-Beispiel:
-
-```text
-/homes/ftp_reolink/
-├── 2026/
-├── 2026-03-24/
-├── 2026-03-25/
-├── 2026-03-26/
-└── 2026-03-28/
-    ├── Haustuer_01_homehub_20260328171736.jpg
-    ├── Haustuer_01_homehub_20260328171736.mp4
-    ├── Haustuer_01_homehub_20260328171819.mp4
-    └── ...
-```
-
-Die Tagesordner werden rekursiv gesucht. Ordner mit Namen im Format `YYYY-MM-DD` werden als Event-Ordner behandelt.
-
-## Funktionen im aktuellen MVP
-
-- lokale Weboberfläche
-- Datum auswählbar
-- mehrere Kameras unterstützt
-- Ereignisse anhand des Dateinamens gruppiert
-- JPG zuerst im Hauptviewer
-- Umschaltung auf MP4
-- Timeline mit Positionsmarkern über 24 Stunden
-- Thumbnail-Leiste mit Ereigniskarten
-- Docker-ready
-
-## Tech Stack
-
-- FastAPI
-- Jinja2
-- Vanilla JavaScript
-- Docker / Docker Compose
-
-## Lokal starten ohne Docker
-
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-export MEDIA_ROOT=/homes/ftp_reolink
-uvicorn app.main:app --host 0.0.0.0 --port 8085 --reload
-```
-
-Dann im Browser öffnen:
+Der Viewer sucht nach Dateien in Datumsordnern:
 
 ```text
-http://<deine-synology-ip>:8085
+MEDIA_ROOT/
+├── 2026-06-21/
+│   ├── Haustuer_20260621103015.jpg
+│   ├── Haustuer_20260621103015.mp4
+│   └── Terrasse_20260621114530.jpg
+└── 2026-06-22/
+    └── Haustuer_20260622081200.jpg
 ```
 
-## Start mit Docker Compose
+Erwartetes Namensschema:
+
+```text
+<Kamera>_<YYYYMMDDHHMMSS>.jpg
+<Kamera>_<YYYYMMDDHHMMSS>.mp4
+```
+
+## Schnellstart mit Docker Compose
 
 ```bash
+cp .env.example .env
+# .env anpassen
 docker compose up -d --build
 ```
 
-Oder in Portainer als Stack mit dem Inhalt von `docker-compose.yml`.
+Standardmäßig ist der Viewer danach lokal erreichbar unter:
 
-## Wichtige Hinweise
+```text
+http://<SYNOLOGY-IP>:8085/reolink/
+```
 
-### 1. Volume-Mount
+## Konfiguration
 
-Die App sieht nur Dateien, die in den Container gemountet werden.
+Die wichtigsten Einstellungen stehen in `.env` oder im `environment`-Block der `docker-compose.yml`.
 
-Aktuell ist das vorbereitet für:
+| Variable | Standard | Beschreibung |
+|---|---:|---|
+| `MEDIA_ROOT` | `/data/reolink` | Ordner mit Reolink-Aufnahmen im Container |
+| `PORT` | `8085` | interner Webserver-Port |
+| `BASE_PATH` | `/reolink` | Unterpfad für Reverse Proxy/PWA |
+| `APP_NAME` | `Reolink Timeline Viewer` | voller App-Name |
+| `APP_SHORT_NAME` | `Reolink` | kurzer PWA-Name |
+| `APP_VERSION` | `1.0.0` | Version und Cache-Busting |
+| `THEME_COLOR` | `#050b17` | PWA-/Browser-Farbe |
+| `BACKGROUND_COLOR` | `#050b17` | PWA-Hintergrundfarbe |
+
+## Beispiel: Synology / Portainer
+
+In der `docker-compose.yml` muss der lokale Reolink-Ordner auf `/data/reolink` gemappt werden:
 
 ```yaml
 volumes:
-  - /homes/ftp_reolink:/homes/ftp_reolink:ro
+  - /volume1/homes/ftp_reolink:/data/reolink:ro
 ```
 
-### 2. Nur lokale Nutzung
+Bei anderer Ablage entsprechend anpassen.
 
-Das Projekt ist derzeit für lokale Nutzung gedacht. Es gibt aktuell:
+## Betrieb unter `apps.example.de/reolink/`
 
-- keine Benutzerverwaltung
-- keinen Login
-- keine externen Freigaben
-- keine Schreibzugriffe
-
-### 3. Dateinamensmuster
-
-Erwartet wird aktuell:
+Der Viewer ist für folgenden Aufbau vorbereitet:
 
 ```text
-<KAMERANAME>_YYYYMMDDHHMMSS.jpg
-<KAMERANAME>_YYYYMMDDHHMMSS.mp4
+Cloudflare Tunnel
+  → Nginx Proxy Manager
+  → http://<SYNOLOGY-IP>:8085/reolink/
 ```
 
-Beispiel:
+Kurzfassung für Nginx Proxy Manager:
 
-```text
-Haustuer_01_homehub_20260328171736.jpg
+- Proxy Host: `apps.example.de`
+- Custom Location: `/reolink`
+- Forward Host/IP: `<SYNOLOGY-IP>`
+- Forward Port: `8085`
+- keine Rewrite-Regeln verwenden
+
+Details stehen in [`docs/nginx-proxy-manager.md`](docs/nginx-proxy-manager.md).
+
+## PWA
+
+Die PWA ist auf den Unterpfad ausgerichtet:
+
+```json
+"id": "/reolink/",
+"start_url": "/reolink/?source=pwa",
+"scope": "/reolink/"
 ```
 
-## Roadmap
+Wenn der Installieren-Button auf Android nicht erscheint, siehe [`docs/pwa.md`](docs/pwa.md).
 
-- Caching / schnelleres Indexing
-- Autorefresh für neue Dateien
-- Mehrfachauswahl mehrerer Tage
-- Scrubbing / Sprung entlang der Timeline
-- Video-Vorschaubild aus MP4 generieren, wenn kein JPG existiert
-- Ereignistypen farblich markieren
-- Home-Assistant-Integration
-- Container-Image auf GitHub Container Registry
+## GitHub Release
 
-## GitHub-Veröffentlichung
+Eine kurze Release-Anleitung steht in [`docs/github-release.md`](docs/github-release.md).
 
-Empfohlener Repo-Name:
+## Lizenz
 
-```text
-reolink-timeline-viewer
-```
-
-Erste sinnvolle Tags / Topics:
-
-```text
-reolink fastapi docker synology timeline cctv nvr homehub
-```
+MIT License. Siehe [`LICENSE`](LICENSE).
